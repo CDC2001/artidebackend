@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>layout 后台大布局 - Layui</title>
+  <link rel="stylesheet" href="/public/layui/css/layui.css">
+</head>
+
+<body class="layui-layout-body">
+  <div class="layui-layout layui-layout-admin">
+    <!-- 引入头部 -->
+    {{ include './common/header.html' }}
+    <!-- 引入左侧边边栏 -->
+    {{ include './common/side.html' }}
+    <!-- 内容主体区域 -->
+    <div class="layui-body">
+
+      <div style="padding: 15px;">
+        <table class="layui-table" lay-size="sm">
+          <colgroup>
+            <col width="150">
+            <col width="200">
+            <col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>分类名称</th>
+              <th>排序</th>
+              <th>添加时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 引入底部 -->
+    {{ include './common/footer.html' }}
+  </div>
+  <!-- 注意引入的依赖顺序 -->
+  <script src="/public/layui/layui.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+  <!-- Moment.js是一个轻量级的JavaScript时间库，它方便了日常开发中对时间的操作，提高了开发效率。 -->
+  <script src="/public/js/moment.js"></script>
+  <script src="/public/js/util.js"></script>
+  <script>
+    //JavaScript代码区域
+    // layui会自动把layer变为全局
+    layui.use(['layer', 'element'], function () {
+    });
+    // 发送ajax请求，获取mysql数据，把数据添加到表格中
+    function initCatDate() {
+      $.ajax({
+        url: "/getCate",
+        dataType: 'json'
+      }).then(res => {
+        // 动态创建tr，追加到tboby下面去
+        renderTable(res)
+      })
+    }
+    initCatDate();
+    // 将获取到的数据进行动态创建tr，追加
+    function renderTable(data) {
+      // 定义一个空的模板字符串，稍后循环添加内容
+      let tbodtHtml = ``;
+      data.forEach((item, index) => {
+        // 结构赋值
+        let { name, sort, add_date, cate_id } = item;
+        // 把添加时间add_date转化出来
+        add_date = util.date_format(add_date, 'YYY-MM-DD');
+        tbodtHtml += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${name}</td>
+              <td>${sort}</td>
+              <td>${add_date}</td>
+              <td>
+                  <div class="layui-btn-group">
+                    <button title='编辑' type="button" class="layui-btn "><i class="layui-icon">&#xe642;</i></button>
+                    <button title='删除' cate_id="${cate_id}" type="button" class="layui-btn layui-btn-danger del"><i class="layui-icon">&#xe640;</i></button>
+                  </div>
+              </td>
+            </tr>
+      `;
+        // 把得到的数据赋值给ID=tbody元素
+        $('#tbody').html(tbodtHtml);
+      })
+    }
+    // 发送ajax请求删除指定栏目
+    $("#tbody").on('click', '.del', function () {
+      let _this = $(this); // 保存当前点击的对象
+      // 获取自定义属性的值即分类的id
+      let cate_id = $(this).attr('cate_id');
+      // 防止误删除
+      layer.confirm('确认删除吗', {
+        btn: ['是的','取消'] //按钮
+      }, function(){
+        // 发送ajax进行删除
+        $.ajax({
+          type:'post',
+          url:"delCat",
+          data:{cate_id},
+          dataType:"json"
+        }).then(res=>{
+            let {errcode,message} = res;
+            if(errcode == 0){
+              _this.parents('tr').remove();
+              layer.closeAll();
+               // 找到每个tr中的第一个td,重新编号
+              $.each($("#tbody tr").find('td:eq(0)'),function(index,ele){
+                  $(ele).html(index + 1)
+              })
+              layer.msg(message)
+            }
+        }).catch(err=>{
+          layer.closeAll(); 
+        })
+      });
+    })
+  </script>
+</body>
+
+</html>
