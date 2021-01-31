@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>layout 后台大布局 - Layui</title>
+  {{ include './common/link.html' }}
+</head>
+<!-- 栏目管理页面 -->
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+  <!-- 引入头部 -->
+  {{ include './common/header.html' }}
+  <!-- 引入左侧边边栏 -->
+  {{ include './common/side.html' }}
+  <!-- 内容主体区域 -->
+  <div class="layui-body">
+    <!-- 内容主体区域 -->
+    <div style="padding: 15px;">
+        <form class="layui-form" action="">
+           <!-- <input type="hidden" name="cat_id" value=''> -->
+            <div class="layui-form-item">
+              <label class="layui-form-label">分类名称：</label>
+              <div class="layui-input-inline">
+                <input type="text" name="name" lay-verify="required" placeholder="分类名称" autocomplete="off" class="layui-input">
+              </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序：</label>
+                <div class="layui-input-inline">
+                  <input type="number" name="sort"  required  lay-verify="number"  autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">添加时间：</label>
+                <div class="layui-input-inline">
+                  <input type="text"  id="add_date"  name="add_date" required  lay-verify="required"  autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+              <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="formDemo">编辑</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+              </div>
+            </div>
+        </form>
+    </div>
+  </div>
+  <!-- 引入底部 -->
+  {{ include './common/footer.html' }}
+</div>
+{{ include './common/scriptjs.html' }}
+<script>
+// exec不仅可以拿到正则结果，还能拿到捕获组结果，如果 exec() 找到了匹配的文本，
+// 则返回一个结果数组。否则，返回 null。此数组的第 0 个元素是与正则表达式相匹配
+// 的文本，第 1 个元素是与 RegExpObject 的第 1 个子表达式相匹配的文本（如果有的话）
+// 以此类推
+
+// 获取地址栏中的cat_id的参数
+// 1.获取URL地址
+let url = location.href;
+// 正则判断
+let reg = /cate_id=(.*)&?/;
+// [...伪数组] =》 转化为真数组
+// [,cat_id]： 解构：舍去第一个参数，要第二个参数
+let [,cate_id] = [...reg.exec(url)]
+// 通过cat_id发ajax,获取当前分类的数据即可，在赋值给模板即可
+$.ajax({
+  url:"/getOneCate?cate_id="+cate_id,
+}).then(res=>{
+  // console.log(res);
+  let {errcode,name,sort,add_date,cate_id} = res;
+  add_date = util.date_format(add_date)
+  if(errcode == 0){
+    //给表单赋值，进行数据的回显
+    $("input[name='name']").val(name)
+    $("input[name='sort']").val(sort)
+    $("input[name='add_date']").val(add_date)
+    // $("input[name='cat_id']").val(cate_id)
+  }
+})
+
+layui.use(['element','form','layer','laydate'], function(){
+    var element = layui.element;
+    var layer = layui.layer;
+    var form = layui.form;
+    var laydate = layui.laydate
+    
+    //监听提交
+    form.on('submit(formDemo)', function(data){
+        // console.log(data);return false;
+        // 表单验证成功后触发这里，data.field是我们的表单数据 
+        // data.elem:是当前点击的提交按钮的dom对象
+        // 发送ajax请求，进行数据入库
+        let oldText = data.elem.innerText;
+        $(data.elem).addClass('layui-btn-disabled').text('编辑中..')
+        data = { ...data.field,cate_id}
+        $.ajax({
+          type:'post',
+          url:"/updCate",
+          data:data
+        }).then(res=>{
+          $(data.elem).removeClass('layui-btn-disabled').text(oldText)
+          let {errcode,message} = res;
+          if(errcode == 0){
+            layer.msg(message)
+            location.href="/catindex";
+          }else{
+            layer.msg(message)
+          }
+        })
+        // 阻止表单默认提交的行为
+        return false;
+    });
+    // 初始化时间
+    //常规用法
+    laydate.render({
+        elem: '#add_date',
+        type: "datetime"
+    });
+  
+});
+function startNProgress(){
+        NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
+        let interval = setInterval(function(){
+            NProgress.inc(); // 以小量递增
+        },200)
+
+        $(window).on('load',()=>{
+            clearInterval(interval)
+            NProgress.done()
+        })
+    }
+startNProgress();
+</script>
+</body>
+
+</html>

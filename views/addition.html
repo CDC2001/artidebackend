@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{ include './common/link.html' }}
+    <title>Document</title>
+</head>
+<body>
+  <!-- 当点击添加分类时，跳转到这个页面 -->
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <!-- 引入头部 -->
+    {{ include './common/header.html' }}
+    <!-- 引入左侧边边栏 -->
+    {{ include './common/side.html' }}
+    <!-- 内容主体区域 -->
+    <div class="layui-body">
+        <div style="padding: 15px;">
+            <form class="layui-form" action="">
+                <div class="layui-form-item">
+                  <label class="layui-form-label">分类名称：</label>
+                  <div class="layui-input-inline">
+                    <input type="text" name="name" lay-verify="required" placeholder="分类名称" autocomplete="off" class="layui-input">
+                  </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">排序：</label>
+                    <div class="layui-input-inline">
+                      <input type="number" name="sort" lay-verify="number"  autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">添加时间：</label>
+                    <div class="layui-input-inline">
+                      <input type="text"  id="add_date" name="add_date" required  lay-verify="required"  autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                  <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="formDemo">添加</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                  </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 引入底部 -->
+    {{ include './common/footer.html' }}
+</div>
+</body>
+{{ include './common/scriptjs.html' }}
+<script>
+//JavaScript代码区域
+layui.use(['element','form','layer','laydate'], function(){
+  var element = layui.element;
+  var layer = layui.layer;
+  var form = layui.form;
+  var laydate = layui.laydate
+  
+  //监听提交
+  form.on('submit(formDemo)', function(data){
+    // 表单验证成功后触发这里，data内容为一个对象，里面有elem，field，，form
+    // 如需获取则是data.对象
+    // data.field是我们的表单数据 
+    // data.elem:是当前点击的提交按钮的dom对象
+    // 所以当点击添加后，
+    // 刚好可以发送ajax请求，把数据提交后台入库
+    let oldText = data.elem.innerText;
+    $(data.elem).addClass('layui-btn-disabled').text('添加中..')
+    $.ajax({
+      // 提交用post方式
+      type:'post',
+      url:'/postCat',
+      data:data.field
+    }).then(res=>{
+      console.log(res);
+      $(data.elem).removeClass('layui-btn-disabled').text(oldText)
+      let {errcode,message} = res;
+      if(errcode == 0){
+        layer.msg(message)
+        location.href="/catindex";
+      }else{
+        layer.msg(message)
+      }
+    })
+    // 阻止默认行为，true的话则往当前action指定的URL跳转
+    return false;
+  });
+
+
+
+  // 初始化时间，elem中的ID则和上方添加时间的表格ID一样
+  // 常规用法
+  laydate.render({
+    elem: '#add_date',
+    type: "datetime"
+  });
+});
+function startNProgress(){
+        NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
+        let interval = setInterval(function(){
+            NProgress.inc(); // 以小量递增
+        },200)
+
+        $(window).on('load',()=>{
+            clearInterval(interval)
+            NProgress.done()
+        })
+    }
+startNProgress();
+</script>
+</html>

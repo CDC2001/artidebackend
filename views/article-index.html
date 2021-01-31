@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>layout 后台大布局 - Layui</title>
+  {{ include './common/link.html' }}
+  <link rel="stylesheet" href="/public/css/lightbox.css">
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+  <!-- 引入头部 -->
+  {{ include './common/header.html' }}
+  <!-- 引入左侧边边栏 -->
+  {{ include './common/side.html' }}
+  <!-- 内容主体区域 -->
+  <div class="layui-body">
+    <div style="padding: 15px;">
+        <h2>文章管理</h2>
+        <table class="layui-hide" id="test" lay-filter="test"></table>
+        <div>
+          <button type="button" id="add"  class="layui-btn">
+              <i class="layui-icon">&#xe608;</i> 添加文章
+          </button>
+        </div>
+    </div>
+    <!-- <script type="text/html" id="barDemo">
+      <a class="layui-btn layui-btn-xs" lay-event="show">查看内容</a>
+      <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+      <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script> -->
+  </div>
+  <!-- 引入底部 -->
+  {{ include './common/footer.html' }}
+</div>
+{{ include './common/scriptjs.html' }}
+<script src="/public/js/lightbox-plus-jquery.min.js"></script>
+<script>
+//JavaScript代码区域
+layui.use(['element','table'], function(){
+  var element = layui.element;
+  var table = layui.table;
+  let tableUI = table.render({
+    elem: '#test'
+    ,url:'/allarticle'
+    ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+    ,defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+      title: '提示'
+      ,layEvent: 'LAYTABLE_TIPS'
+      ,icon: 'layui-icon-tips'
+    }]
+    ,limit:8
+    ,limits:[5,10,15,20]
+    ,request: {
+          pageName: 'page' //页码的参数名称，默认：page
+            ,
+          limitName: 'limit' //每页数据量的参数名，默认：limit
+        }
+    ,title: '文章数据'
+    ,cols: [[
+      {type: 'checkbox', fixed: 'left'}
+      ,{field:'art_id', title:'ID', width:80, fixed: 'left', unresize: true,hide:true}
+      ,{field:'title', title:'标题', width:120, edit: 'text'}
+      ,{field:'comtent', title:'内容', width:120}
+      ,{field:'name', title:'所属分类', width:100}
+      ,{field:'author', title:'作者', width:80, edit: 'text', sort: true}
+      ,{field:'cover', title:'图片', width:100,
+      templet({cover}){
+              let imgStr = `<a class="example-image-link" href="${cover}" data-lightbox="example-1" data-title="呵呵呵">
+                        <img class="example-image" src="${cover}" alt="暂无图片" />
+                    </a>`;
+              return imgStr;
+            }
+    }
+      ,{field:'status', title:'状态',unresize: false,templet:(item)=>{
+        let statusMap = {
+          "0": '<span class="layui-badge #1cabd6" style="background:#1cabd6">未发布</span>',
+          "1": "<span class='layui-badge'style='background:#03c3b1'>已发布</span>",
+          "2": "<span class='layui-badge' style='background:#f14d4d'>不通过</span>"
+        }
+        return statusMap[item.status]
+      }}
+      ,{field:'publish_date', title:'发布时间', sort: true,templet(item) {
+          let {publish_date} = item;
+          return util.date_format(publish_date)
+      }}
+      ,{fixed: 'right', title:'操作', 
+      templet({status}) {
+       
+          let temStr =  `<a class="layui-btn layui-btn-xs" lay-event="show">查看内容-${status}</a>`
+          switch(status){
+            case 0 :
+            temStr += `<a class="layui-btn layui-btn-xs layui-bg-orange" lay-event="verify">待审核-${status}</a>`
+            break;
+            default:
+            break;
+          }
+          temStr += `
+          <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+          <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>`
+          return temStr;
+    }
+      }]
+    ]
+    ,page: true,
+    parseData: function (res) {
+            // 可以对返回的数据格式进行调整，修改符合table所需要的的格式
+            // console.log(res);// 后台接口原数据
+            return res;
+          }
+          // 如果后台接口返回的参数table参数不一致，可以在这里重新定义
+          ,
+        response: {},
+        text: {
+          none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+        }
+  });
+  
+  // 跳转到文章添加页面
+  $("#add").on('click',()=>{
+      location.href = '/addArticle'
+  })
+  
+  // 由于编辑和删除，审核是layui框架的东西，所以可以通过layui特定的代码来监听事件
+  // 监听删除、编辑，审核事件
+  table.on('tool(test)', function (obj) {
+        let {data,event} = obj;
+        let {art_id} = data;
+        // console.log(data);
+        // data是当前点击对象的所有信息，art_id,title,comtent,cat_id,author,cover,status,publish_date
+        switch (event) {
+          case "del":  //  删除
+            del(art_id)
+            break;
+          case "edit":  // 编辑
+            edit(art_id)
+            break;
+          case "verify": // 待审核
+            verify(art_id)
+            break;
+        }
+  });
+
+  // 删除文章
+  function del(art_id) {
+      layer.confirm('确认删除', {
+          btn: ['是的', '取消?'] //按钮
+      }, function () {
+      // 发送ajax请求
+      $.ajax({
+          type:'post',
+          url:"/deleteArticle",
+          data:{art_id},
+          success({errcode,message}){ // 解构形参对象的参数
+          // let {errcode,message} = res;
+          layer.closeAll();
+          if(errcode == 0){
+              tableUI.reload(); // 只是重载表格（局部刷新）
+              // location.reload() 刷新当前网页
+              layer.msg(message)
+                }
+              }
+          })
+      });
+  }
+
+  // 跳转到文章编辑页面
+  function edit(art_id){
+      // 需要把id携带过去
+      location.href = `/artedit?art_id=${art_id}`
+  }
+  
+  // 触发待审核事件，审核文章，发送请求，从而修改文章的状态
+  function verify(art_id) {
+      //询问框
+      layer.confirm('是否通过审核', {
+          btn: ['通过','不通过'] //按钮
+        }, function(){
+          // 通过 => status 1
+          updArtStatus(art_id,1)
+        }, function(){
+          // 不通过 => status  2
+          updArtStatus(art_id,2)
+        });
+  }
+  // 封装一个函数，方法供上方调用共享，不用写多遍
+  function updArtStatus(art_id,status){
+        $.post('/modifyState',{art_id,status},({errcode,message})=>{
+          if(errcode == 0){
+            tableUI.reload(); // 只是重载表格（局部刷新）
+          }
+          layer.msg(message)
+        },'json')
+      }
+
+});
+
+
+function startNProgress(){
+        NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
+        let interval = setInterval(function(){
+            NProgress.inc(); // 以小量递增
+        },200)
+
+        $(window).on('load',()=>{
+            clearInterval(interval)
+            NProgress.done()
+        })
+    }
+startNProgress();
+</script>
+</body>
+</html>
