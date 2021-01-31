@@ -25,10 +25,6 @@ app.use(express.urlencoded({ extended: true })) // for parsing application/x-www
 
 // 导入路由模块
 const router = require('./router/router.js')
-
-
-
-
 // 使用路由中间件 req.body
 app.use(router)
 

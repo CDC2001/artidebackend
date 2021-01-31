@@ -46,24 +46,10 @@ CateController.delCat =async (req,res) => {
     }else{
         cate_id = parseInt(cate_id);
         let sql = `delete from category where cate_id = ${cate_id}`
-        // let result = await dbquery(sql);
-        // try{
-        //     result = await dbquery(sql);
-        //     response = {errcode:0,'message':"删除成功"};
-        // }catch(e){
-        //     response = {errcode:10002,'message':"服务器繁忙，稍后再试"};
-        // }
-        // 等价于（看自己习惯）
-        // if(result.affectedRows){
-        //     res.json({errcode:0,'message':"删除成功"})
-        // }else{
-        //     res.json({errcode:10002,'message':"服务器繁忙，稍后再试"})
-        // }
         let response;
         let result ;
         try{
             result = await model(sql);
-            // delsucc,delfail,exception,还有上方的argsfail，都引用responseMessage的模块
             // 容错
             if(result.affectedRows){
                 response = delsucc;
@@ -76,7 +62,6 @@ CateController.delCat =async (req,res) => {
         res.json(response);
     }
 }
-
 // 添加分类页面点击提交接口
 CateController.postCat = async (req,res)=>{
     // 接受参数
@@ -92,8 +77,6 @@ CateController.postCat = async (req,res)=>{
         res.json(addfail)
     }
 }
-
-// 添加成功后，跳转到catindex接口
 // 渲染后台分类列表页面
 CateController.catindex = (req,res)=>{
     res.render('staticTable.html')
