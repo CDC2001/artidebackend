@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const path = require('path')
+// 导入路由模块
+const router = require('./router/router.js')
 
 // 托管静态资源
 app.use('/public',express.static(path.join(__dirname,'public')))
@@ -23,8 +25,7 @@ app.set('view engine', 'html');
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
-// 导入路由模块
-const router = require('./router/router.js')
+
 // 使用路由中间件 req.body
 app.use(router)
 
