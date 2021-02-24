@@ -32,7 +32,6 @@ ArticleController.allArticle = async (req,res)=>{
     res.json(response)
     // res.json(articleData)
 }
-
 //删除指定一项文章数据
 ArticleController.deleteArticle = async (req,res)=>{
     let {art_id} = req.body;
