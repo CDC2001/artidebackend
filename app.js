@@ -25,7 +25,6 @@ app.set('view engine', 'html');
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
-
 // 使用路由中间件 req.body
 app.use(router)
 

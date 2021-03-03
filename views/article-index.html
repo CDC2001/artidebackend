@@ -24,11 +24,6 @@
           </button>
         </div>
     </div>
-    <!-- <script type="text/html" id="barDemo">
-      <a class="layui-btn layui-btn-xs" lay-event="show">查看内容</a>
-      <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-      <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-    </script> -->
   </div>
   <!-- 引入底部 -->
   {{ include './common/footer.html' }}
@@ -87,10 +82,10 @@ layui.use(['element','table'], function(){
       ,{fixed: 'right', title:'操作', 
       templet({status}) {
        
-          let temStr =  `<a class="layui-btn layui-btn-xs" lay-event="show">查看内容-${status}</a>`
+          let temStr =  `<a class="layui-btn layui-btn-xs" lay-event="show">查看内容</a>`
           switch(status){
             case 0 :
-            temStr += `<a class="layui-btn layui-btn-xs layui-bg-orange" lay-event="verify">待审核-${status}</a>`
+            temStr += `<a class="layui-btn layui-btn-xs layui-bg-orange" lay-event="verify">待审核</a>`
             break;
             default:
             break;
@@ -105,14 +100,11 @@ layui.use(['element','table'], function(){
     ,page: true,
     parseData: function (res) {
             // 可以对返回的数据格式进行调整，修改符合table所需要的的格式
-            // console.log(res);// 后台接口原数据
             return res;
-          }
-          // 如果后台接口返回的参数table参数不一致，可以在这里重新定义
-          ,
+          },
         response: {},
         text: {
-          none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+          none: '暂无相关数据'
         }
   });
   
@@ -120,23 +112,21 @@ layui.use(['element','table'], function(){
   $("#add").on('click',()=>{
       location.href = '/addArticle'
   })
-  
-  // 由于编辑和删除，审核是layui框架的东西，所以可以通过layui特定的代码来监听事件
-  // 监听删除、编辑，审核事件
   table.on('tool(test)', function (obj) {
         let {data,event} = obj;
-        let {art_id} = data;
-        // console.log(data);
-        // data是当前点击对象的所有信息，art_id,title,comtent,cat_id,author,cover,status,publish_date
+        let {art_id,title,comtent} = data;
         switch (event) {
-          case "del":  //  删除
+          case "del": 
             del(art_id)
             break;
-          case "edit":  // 编辑
+          case "edit":
             edit(art_id)
             break;
-          case "verify": // 待审核
+          case "verify": 
             verify(art_id)
+            break;
+          case "show": 
+            show(title,comtent)
             break;
         }
   });
@@ -144,42 +134,35 @@ layui.use(['element','table'], function(){
   // 删除文章
   function del(art_id) {
       layer.confirm('确认删除', {
-          btn: ['是的', '取消?'] //按钮
+          btn: ['是的', '取消?'] 
       }, function () {
       // 发送ajax请求
       $.ajax({
           type:'post',
           url:"/deleteArticle",
           data:{art_id},
-          success({errcode,message}){ // 解构形参对象的参数
-          // let {errcode,message} = res;
+          success({errcode,message}){ 
           layer.closeAll();
           if(errcode == 0){
-              tableUI.reload(); // 只是重载表格（局部刷新）
-              // location.reload() 刷新当前网页
+              tableUI.reload(); 
               layer.msg(message)
                 }
               }
           })
       });
   }
-
   // 跳转到文章编辑页面
   function edit(art_id){
       // 需要把id携带过去
       location.href = `/artedit?art_id=${art_id}`
   }
-  
   // 触发待审核事件，审核文章，发送请求，从而修改文章的状态
   function verify(art_id) {
-      //询问框
       layer.confirm('是否通过审核', {
-          btn: ['通过','不通过'] //按钮
+          btn: ['通过','不通过'] 
         }, function(){
-          // 通过 => status 1
           updArtStatus(art_id,1)
         }, function(){
-          // 不通过 => status  2
           updArtStatus(art_id,2)
         });
   }
@@ -187,7 +170,7 @@ layui.use(['element','table'], function(){
   function updArtStatus(art_id,status){
         $.post('/modifyState',{art_id,status},({errcode,message})=>{
           if(errcode == 0){
-            tableUI.reload(); // 只是重载表格（局部刷新）
+            tableUI.reload(); 
           }
           layer.msg(message)
         },'json')
@@ -195,11 +178,21 @@ layui.use(['element','table'], function(){
 
 });
 
+  //弹框显示文章内容
+  function show(title,comtent){
+          layer.open({
+              title:title,
+              type: 1,
+              skin: 'layui-layer-rim', 
+              area: ['1100px', '640px'], 
+              content: "<div style='padding:10px'>" + comtent + "</div>"
+            });
+  }
 
 function startNProgress(){
-        NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
+        NProgress.set(0.4);
         let interval = setInterval(function(){
-            NProgress.inc(); // 以小量递增
+            NProgress.inc();
         },200)
 
         $(window).on('load',()=>{

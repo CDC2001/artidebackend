@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../public/layui/css/layui.css">
+</head>
+<style>
+    form {
+        margin:30px auto;
+    }
+    #tip {
+        width: 120px;
+    height: 30px;
+    margin-left: 110px;
+   
+    }
+</style>
+<body>
+    <div class="layui-body">
+        <!-- 主要内容 -->
+        <div class="container">
+            <form class="layui-form" action="">
+              
+                 
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">旧的密码</label>
+                            <div class="layui-input-inline">
+                              <input type="password" name="oldpass" id="oldpass" lay-verify="password" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">新的密码</label>
+                            <div class="layui-input-inline">
+                              <input type="password" name="newpass" id="newpass" lay-verify="password" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">确认密码</label>
+                            <div class="layui-input-inline">
+                              <input type="password" name="confirmPass" id="confirmPass" lay-verify="password" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div id="tip"></div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                      <button class="layui-btn" id="btn" lay-submit lay-filter="formDemo">确定</button>
+                      <button type="reset" class="layui-btn layui-btn-primary">取消</button>
+                    </div>
+                  </div>
+                 
+            </form>
+        </div>
+    </div>
+
+</div>
+</body>
+<script src="../public/js/jquery.js"></script>
+<script src="../public/layui/layui.all.js"></script>
+<script>
+     layui.use(['form', 'layer'], function () {
+       let jquery = layui.jquery;
+         let layer = layui.layer;
+         var form = layui.form;
+         //监听提交
+  form.on('submit(formDemo)', function(data){
+    console.log(data.field);
+    
+    return false;
+  });
+});
+$("#btn").on('click',()=>{
+     //1.获取用户名和密码及校验
+      let newpass = $.trim( $("#newpass").val() );
+        let oldpass = $.trim( $("#oldpass").val() );
+        let confirmPass = $.trim( $("#confirmPass").val() );
+        
+        if(newpass == ''|| oldpass =='' || confirmPass == '' ){
+            $('#tip').html('密码填写不能为空').css('color','red')
+            return;
+        }
+        $('#tip').html('');
+        })
+</script>
+</html>

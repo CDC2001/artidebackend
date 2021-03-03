@@ -1,8 +1,6 @@
 // 文章控制器
 let ArticleController = {}
 const fs = require('fs');
-
-
 // 导入model,相当于模型执行sql语句，
 const model = require('../model/model.js');
 // 引入响应成功或失败的responseMessage/导入返回结果信息
@@ -16,21 +14,19 @@ ArticleController.allArticle = async (req,res)=>{
     let offset = (page - 1)*pagesize;
     let sql = `select t1.*,t2.name from article t1 left join category t2 on t1.cat_id = t2.cate_id order by art_id desc limit ${offset},${pagesize}`;
     let sql2 = `select count(*) as count from article;`
-    let promise1 =  model(sql); // [{},{},{}]
-    let promise2 =  model(sql2); // [{count:16}]
+    let promise1 =  model(sql); 
+    let promise2 =  model(sql2);
     // 并行
     let result = await Promise.all([promise1,promise2])
     let data = result[0];
     let count = result[1][0].count;
     let response = {
         code: 0,
-        count: count, // 1000是数据的总记录数
+        count: count, 
         data: data,
         msg:''
     }
-    // console.log(data)
     res.json(response)
-    // res.json(articleData)
 }
 //删除指定一项文章数据
 ArticleController.deleteArticle = async (req,res)=>{
@@ -55,7 +51,6 @@ ArticleController.addArticle = (req,res)=>{
 // 提交数据入库
 ArticleController.submitArticles = async (req,res)=>{
     let {cover,title,cat_id,status,comtent} = req.body;
-    // publish_date使用mysql中的时间函数，now（），可得到实时时间
     let sql = `insert into article(title,comtent,cat_id,status,cover,publish_date)
                 values('${title}','${comtent}',${cat_id},${status},'${cover}',now())
                 `;
@@ -95,7 +90,41 @@ ArticleController.modifyState = async (req,res)=>{
         res.json(updfail)
     }
 }
+// 获取单条文章
+ArticleController.onlyArt = async (req,res)=>{
+    let {art_id} = req.query;
+    let sql = `select * from article where art_id = ${art_id}`;
+    let data = await model(sql);
+    res.json(data[0] || {})
+}
+// 编辑文章数据入库
+ArticleController.editData = async (req,res)=>{
+    //1.接收post数据(校验)
+    let a = req.body;
+    console.log(a);
+    
+    let {cover,title,cat_id,art_id,comtent,status,oldCover} = req.body
+    // 2.执行sql语句
+    let sql;
+    if(cover){
+        // 有值更新图片，且要删除原图
+      sql = `update article set title='${title}',comtent='${comtent}',cover='${cover}'
+                ,cat_id=${cat_id},status = ${status} where art_id = ${art_id};`
+    }else{
+        // 没有值，则保留原图片
+        sql = `update article set title='${title}',comtent='${comtent}'
+                ,cat_id=${cat_id},status = ${status} where art_id = ${art_id};`
+    }
+    let result = await model(sql);
+    //3.响应结果
+    if(result.affectedRows){
+         // 成功之后，删除原图
+         cover && fs.unlinkSync(oldCover)
+        res.json(updsucc)
+    }else{
+        res.json(updfail)
+    }
 
-
+}
 // 暴露模块
 module.exports = ArticleController;

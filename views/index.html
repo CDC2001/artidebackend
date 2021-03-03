@@ -15,17 +15,21 @@
   <!-- 内容主体区域 -->
   <div class="layui-body">
    
-    <div style="padding: 15px;">来，点点我</div>
+    <div style="padding: 15px;">
+      <div id="cate" style="width: 600px;height:400px;"></div>
+    </div>
   </div>
   <!-- 引入底部 -->
   {{ include './common/footer.html' }}
 </div>
 {{ include './common/scriptjs.html' }}
+<script src="/public/js/echarts.min.js"></script>
 <script>
 //JavaScript代码区域
 layui.use('element', function(){
   var element = layui.element;
 });
+//进度条
 function startNProgress(){
         NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
         let interval = setInterval(function(){
@@ -38,6 +42,87 @@ function startNProgress(){
         })
     }
 startNProgress();
+
+
+  // 获取分类统计的数据
+  $.get('/cateCount',(res)=>{
+    // 成功只有再去渲染图表
+     // 初始化图表
+     let names = []; // 保存分类名称
+     let totals = []; // 保存文章分类的总文章数
+     res.map(v=>{
+      names.push(v.name);
+      totals.push(v.total)
+     })
+    let dom = document.getElementById("cate")
+    let text = '分类文章统计'
+    initEchart(dom,names,totals,text,'bar');
+  })
+  // 获取每月文章统计的数据
+  $.get('/artCount',(res)=>{
+    // 成功只有再去渲染图表
+     // 初始化图表
+     let months = []; // 保存分类名称
+     let totals = []; // 保存文章分类的总文章数
+     res.map(v=>{
+      months.push(v.month + '月');
+      totals.push(v.total)
+     })
+     let dom = document.getElementById("art")
+     let text = '每月文章统计'
+    initEchart(dom,months,totals,text,'line');
+  })
+
+  // 加载图表
+  function initEchart(dom,names,total,text,type){
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(dom);
+ 
+      // 指定图表的配置项和数据
+      var option = {
+          title: {
+              text: text,
+              // subtext: "单位：文章数",
+              textStyle: {
+                // color: '#cccccc'
+              }
+          },
+          color: "skyblue",
+          tooltip: {
+            show:true,
+            axisPointer:{
+              type: 'cross'
+            }
+          },
+          legend: {
+              data:['销量']
+          },
+          xAxis: {
+              data: names
+          },
+          yAxis: {},
+          series: [{
+              name: '文章篇数',
+              type: type, // bar-柱状 line-折现 pie-饼状
+              data: total,
+              label: {
+                show:true,
+                fontSize: 20,
+                showBackground: true,
+                backgroundStyle:{
+                  color: 'rgba(180, 180, 180, 0.2)'
+                }
+              }
+          }]
+      };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+  }
+
+
+ 
+
 </script>
 </body>
 </html>

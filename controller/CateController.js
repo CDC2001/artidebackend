@@ -1,42 +1,28 @@
 // 分类模块控制器
-// 渲染模板，调用模型，响应json数据
-
 let CateController = {};
 // 引用dbquery连接数据库
 const model = require("../model/model.js")
 // 引入响应成功或失败的responseMessage/导入返回结果信息
 const {all,delsucc,delfail,exception,argsfail,addsucc,addfail,getsucc,getfail,updsucc,updfail} = require("../util/responseMessage");
-
-
 // 除首页之外的其它两个分类列表页面
 CateController.staticTables =(req,res)=>{
-    // res.sendFile(path.join(__dirname,'views/staticTable.html'));
     res.render('staticTable.html');
 }
 CateController.adds =(req,res)=>{
-    // res.sendFile(path.join(__dirname,'views/add.html'));
     res.render('article-index.html');
 }
 // 添加分类页面
 CateController.cataddition =(req,res)=>{
-    // res.sendFile(path.join(__dirname,'views/add.html'));
     res.render('addition.html');
 }
-
 // 获取分类数据的接口  =>staticTable 表格数据
 CateController.getCate =async (req,res)=>{
     // 查询数据库,并根据order by 将sort的序号降序排列，得到新的数据
     let sql = "select * from category order by sort asc";
-    // connection.query(sql,(err,rows)=>{
-    //     if(err){ throw err; }
-    //     // 返回数据
-    //     res.json(rows);
-    // })
     let data = await model(sql);
      // 返回数据
     res.json(data);
 }
-
 // 删除指定分类staticTable 表格数据的其中一栏
 CateController.delCat =async (req,res) => {
     let {cate_id} = req.body
@@ -50,7 +36,6 @@ CateController.delCat =async (req,res) => {
         let result ;
         try{
             result = await model(sql);
-            // 容错
             if(result.affectedRows){
                 response = delsucc;
             }else{
@@ -66,8 +51,9 @@ CateController.delCat =async (req,res) => {
 CateController.postCat = async (req,res)=>{
     // 接受参数
     let {name,sort,add_date} = req.body;
+    console.log(req.body);
     // 把数据入库
-    let sql = `insert into category(name,sort,add_date) values('${name}',${sort},'${add_date}')`
+    let sql = `insert into category(name,sort,add_date) values('${name}','${sort}','${add_date}')`
     // 把结果响应回前台
     let result = await model(sql);
     if(result.affectedRows){
@@ -81,7 +67,6 @@ CateController.postCat = async (req,res)=>{
 CateController.catindex = (req,res)=>{
     res.render('staticTable.html')
 }
-
 // 展示编辑分类的页面
 CateController.catedit = (req,res)=>{
     res.render('staticTable-edit.html')
@@ -106,7 +91,6 @@ CateController.getOneCate = async (req,res)=>{
        }
    }
 }
-
 // 实现分类的编辑入库
 CateController.updCate = async (req,res)=>{
     //1.接收参数

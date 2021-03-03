@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台登录</title>
+    <link rel="stylesheet" href="../public/css/login.css">
+</head>
+<body>
+    <div class="login-wrap">
+        <div class="login-html">
+            <input id="tab-1" type="radio" name="tab"  class="sign-in" checked><label for="tab-1" class="tab">登录</label>
+            <input id="tab-2" type="radio" name="tab" class="sign-up"><label for="tab-2" class="tab">注册</label>
+            <div class="login-form">
+                <div class="sign-in-htm">
+                    <div class="group">
+                        <label for="username" class="label">用户名</label>
+                        <input id="username"  type="text" autocomplete="off" class="input">
+                    </div>
+                    <div class="group">
+                        <label for="password" class="label">密码</label>
+                        <input id="password" type="password" class="input" data-type="password">
+                    </div>
+                    <div class="group">
+                        <input id="check" type="checkbox" class="check" checked>
+                        <label for="check"><span class="icon"></span> 记住我</label>
+                    </div>
+                    <div class="group">
+                        <input type="submit" class="button" id="signinBtn" value="登录">
+                    </div>
+                    <div class="hr"></div>
+                    <div class="foot-lnk">
+                        <a href="#forgot">Forgot Password?</a>
+                    </div>
+                </div>
+                <div class="sign-up-htm">
+                    <div class="group">
+                        <label for="user" class="label">用户名</label>
+                        <input id="user" type="text" class="input">
+                    </div>
+                    <div class="group">
+                        <label for="pass" class="label">密码</label>
+                        <input id="pass" type="password" class="input" data-type="password">
+                    </div>
+                    <div class="group">
+                        <label for="repass" class="label">确认密码</label>
+                        <input id="repass" type="password" class="input" data-type="password">
+                    </div>
+                    
+                    <div class="group">
+                        <input type="submit" class="button" value="注册">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="../public/js/jquery.js"></script>
+<script src="../public/layui/layui.all.js"></script>
+<script>
+    let layer = layui.layer;
+    // ajax登录
+    $("#signinBtn").on('click',()=>{
+        //1.获取用户名和密码及校验
+        let username = $.trim( $("#username").val() );
+        let password = $.trim( $("#password").val() );
+        if(username == ''|| password =='' ){
+            layer.msg('用户名和密码不能为空')
+            return;
+        }
+        //发送之前设置loading层
+        var index = layer.load(1, {
+            shade: [0.5,'#333'] //0.1透明度的白色背景
+        });
+
+        $.post('/signin',{username,password},(res)=>{
+            layer.close(index)
+            let {errcode,message} = res;
+            if(errcode==0){
+                layer.msg(`欢迎：${username}回家`)
+                // 把用户名存储到本地存储，实现跨页面共享数据
+                localStorage.setItem('username',username)
+                location.href = '/'
+            }else{
+                layer.msg(message)
+            }
+            
+        },'json')
+
+    })
+</script>
+</html>

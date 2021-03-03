@@ -1,7 +1,7 @@
 {
   "name": "day66-code",
   "version": "1.0.0",
-  "description": "* 基于`express` 搭建 * 后台ui使用`layui` * 使用技术 `layui+jQuery+async/ await` * 配合模板引擎构成页面结构",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,15 +14,9 @@
     "art-template": "^4.13.2",
     "express": "^4.17.1",
     "express-art-template": "^1.0.1",
+    "express-session": "^1.17.1",
+    "md5": "^2.3.0",
     "multer": "^1.4.2",
     "mysql": "^2.18.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CDC2001/artidebackend.git"
-  },
-  "bugs": {
-    "url": "https://github.com/CDC2001/artidebackend/issues"
-  },
-  "homepage": "https://github.com/CDC2001/artidebackend#readme"
+  }
 }

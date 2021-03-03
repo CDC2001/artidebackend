@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title></title>
+  <title>layout 后台大布局 - Layui</title>
   {{ include './common/link.html' }}
 </head>
 <body class="layui-layout-body">
@@ -40,7 +41,8 @@
                     <img src="" alt="" id='cover-preview'>
                 </div>
             </div>
-            <div class="layui-form-item">
+            <div style="position: relative;">
+            <div class="layui-form-item" style="position: absolute;top:0;left:0;z-index:99999;">
               <label class="layui-form-label">所属分类</label>
               <div class="layui-input-inline">
                 <select id="cat_id" name="cat_id" lay-verify="required">
@@ -54,7 +56,8 @@
                 </select>
               </div>
             </div>
-            <div class="layui-form-item">
+          </div>
+            <div class="layui-form-item" style="margin: 50px 0;">
               <label class="layui-form-label">状态</label>
               <div class="layui-input-block">
                 <input type="radio" name="status" value="0" title="未发布" checked>
@@ -62,9 +65,9 @@
               </div>
             </div>
             <div class="layui-form-item layui-form-text">
-              <label class="layui-form-label">内容（富文本）</label>
-              <div class="layui-input-inline">
-                <textarea name="comtent" placeholder="请输入内容" class="layui-textarea"></textarea>
+              <label class="layui-form-label">内容</label>
+              <div class="layui-input-block">
+                <div id="content"></div>  
               </div>
             </div>
             <div class="layui-form-item">
@@ -80,7 +83,14 @@
    {{ include './common/footer.html' }}
 </div>
 {{ include './common/scriptjs.html' }}
+<script src="https://cdn.jsdelivr.net/npm/wangeditor@latest/dist/wangEditor.min.js"></script>
 <script>
+    // 富文本编辑器代码区域
+    const E = window.wangEditor
+    const editor = new E('#content')
+    // 可以实现手动上传图片(转换成base64格式)
+    editor.config.uploadImgShowBase64 = true; 
+    editor.create()
     //JavaScript代码区域
     layui.use(['element','form','layer','upload'], function(){
       var element = layui.element;
@@ -90,8 +100,8 @@
 
       // 图片代码区域,图片也算是静态资源，所以还需设置托管静态资源中间件
       var uploadInst = upload.render({
-      elem: '#cover_img_upload' //绑定元素
-      ,url: '/upload/' //上传接口
+      elem: '#cover_img_upload' 
+      ,url: '/upload/'
       ,done: function({code,message,src}){
         //上传完毕回调
         if(code == 0){
@@ -105,11 +115,10 @@
     }
   });
 
-
-
-       //监听提交
-       form.on('submit(formDemo)', function(data){
-        let formData = data.field;
+  //监听提交
+  form.on('submit(formDemo)', function(data){
+    let formData = data.field;
+    formData.comtent = editor.txt.html(); //获取编辑器内容
     // 发送ajax请求，入库数据即可
     $.post('/submitArticles',formData,({errcode,message})=>{
       if(errcode == 0){
@@ -124,27 +133,21 @@
       $.get('/getCate',(res)=>{
         let optionStr = `<option value=""></option>`;
         res.forEach(v=>{
-          console.log(v)
+          // console.log(v)
           optionStr += `<option value="${v.cate_id}">${v.name}</option>`
         })
-        // 赋值给下拉框select
         // optionStr是属于ajax动态生成的
         $("#cat_id").html(optionStr);
-        form.render(); // 重新渲染
+        form.render();
       },'json')
     }
     loadCate();
   });
-
- 
-
-
-
     // 进度条
     function startNProgress(){
-        NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
+        NProgress.set(0.4);
         let interval = setInterval(function(){
-            NProgress.inc(); // 以小量递增
+            NProgress.inc(); 
         },200)
 
         $(window).on('load',()=>{

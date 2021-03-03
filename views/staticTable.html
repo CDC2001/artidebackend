@@ -17,9 +17,6 @@
   <div class="layui-body">
     <div style="padding: 15px;">
       <table class="layui-table" lay-size="sm">
-        <button type="button" id="addition"  class="layui-btn">
-          <i class="layui-icon">&#xe608;</i> 添加分类
-        </button>
         <colgroup>
           <col width="150">
           <col width="200">
@@ -34,11 +31,11 @@
             <th>操作</th>
           </tr>
         </thead>
-        <tbody id="tbody">
-
-        </tbody> 
+        <tbody id="tbody"></tbody> 
       </table>
-
+      <button type="button" id="addition"  class="layui-btn">
+        <i class="layui-icon">&#xe608;</i> 添加分类
+      </button>
     </div>
   </div>
   <!-- 引入底部 -->
@@ -46,12 +43,21 @@
 </div>
 {{ include './common/scriptjs.html' }}
 <script>
-  //JavaScript代码区域
-  // layui会自动把layer变为全局
   layui.use(['layer', 'element'], function () {
   });
 
-  // 渲染分类数据
+  // 发送ajax请求，获取mysql数据，把数据添加到表格中
+  function initCatDate() {
+    $.ajax({
+      url: "/getCate",
+      dataType: 'json'
+    }).then(res => {
+      // 动态创建tr，追加到tboby下面去
+      renderTable(res)
+    })
+  }
+  initCatDate();
+  // 将获取到的数据进行动态创建tr，追加
   function renderTable(data) {
     // 定义一个空的模板字符串，稍后循环添加内容
     let tbodtHtml = ``;
@@ -78,16 +84,6 @@
       $('#tbody').html(tbodtHtml);
     })
   }
-  // 发送ajax请求，获取mysql数据，把数据添加到表格中
-  function initCatDate() {
-    $.ajax({
-      url: "/getCate",
-      dataType: 'json'
-    }).then(res => {
-      renderTable(res)
-    })
-  }
-  initCatDate();
 
   // 发送ajax请求删除指定栏目
   $("#tbody").on('click', '.del', function () {
@@ -135,8 +131,6 @@ $("tbody").on('click','.edit',function(){
       let cate_id = $(this).attr('cate_id')
       location.href = "/catedit?cate_id=" + cate_id
     })
-
-    // 进度条
     function startNProgress(){
         NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
         let interval = setInterval(function(){

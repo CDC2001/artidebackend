@@ -87,9 +87,7 @@ layui.use(['element','form','layer','laydate'], function(){
     // 阻止默认行为，true的话则往当前action指定的URL跳转
     return false;
   });
-
   // 初始化时间，elem中的ID则和上方添加时间的表格ID一样
-  // 常规用法
   laydate.render({
     elem: '#add_date',
     type: "datetime"
@@ -98,7 +96,7 @@ layui.use(['element','form','layer','laydate'], function(){
 function startNProgress(){
         NProgress.set(0.4);// 默认设置40% NProgress.set(0) 等价与 NProgress.start()
         let interval = setInterval(function(){
-            NProgress.inc(); // 以小量递增
+            NProgress.inc(); 
         },200)
 
         $(window).on('load',()=>{
